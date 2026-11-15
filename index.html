@@ -77,7 +77,7 @@
     <section class="staff-panel" id="staff-panel" hidden aria-labelledby="staff-heading">
       <h2 id="staff-heading">Staff receipt printer</h2>
       <p>Enter the order details you received, then create and print a receipt.</p>
-      <p>EmailJS template recipient: <code>{{to_email}}</code>. Add <code>{{customer_name}}</code>, <code>{{delivery_location}}</code>, <code>{{order_items}}</code>, <code>{{order_total}}</code>, and <code>{{order_date}}</code> to the email template.</p>
+      <p>EmailJS template recipient: <code>{{to_email}}</code>. Add <code>{{customer_name}}</code>, <code>{{delivery_location}}</code>, <code>{{order_items}}</code>, <code>{{order_total}}</code>, and <code>{{order_date}}</code> in your EmailJS template.</p>
       <form id="receipt-form">
         <label class="location-field">
           Customer name
@@ -111,19 +111,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
-      // Replace these sample products and prices with your own shop items.
       const products = [
-        { id: 1, name: "Rice", description: "Quality rice for your meals.", price: 195000, icon: "🍚", category: "dry", image: "images/file_0000000039148211a3919ac542e8132e.png" },
-        { id: 2, name: "Maize flour", description: "Maize flour for everyday cooking.", price: 140000, icon: "🌽", category: "dry", image: "images/file_00000000cbd882118c188964f16d5cbd.png" },
-        { id: 3, name: "Rice flour", description: "Rice flour for cooking and baking.", price: 85000, icon: "🌾", category: "dry", image: "images/file_0000000023e88211a2a3b05ec3695a2c.png" },
-        { id: 4, name: "Bushera", description: "A traditional fermented drink.", price: 55000, icon: "🥤", category: "fresh", image: "images/file_0000000039148211a3919ac542e8132e.png" },
-        { id: 5, name: "Cassava flour", description: "Cassava flour for everyday cooking.", price: 115000, icon: "🌿", category: "dry", image: "images/file_00000000cbd882118c188964f16d5cbd.png" },
-        { id: 6, name: "Tomatoes", description: "Fresh tomatoes for cooking and salads.", price: 5000, icon: "🍅", category: "fresh", image: "images/file_0000000023e88211a2a3b05ec3695a2c.png" },
+        { id: 1, name: "Rice", description: "Quality rice for your meals.", price: 195000, icon: "🍚", category: "dry", image: "file_0000000039148211a3919ac542e8132e.png" },
+        { id: 2, name: "Maize flour", description: "Maize flour for everyday cooking.", price: 140000, icon: "🌽", category: "dry", image: "file_00000000cbd882118c188964f16d5cbd.png" },
+        { id: 3, name: "Rice flour", description: "Rice flour for cooking and baking.", price: 85000, icon: "🌾", category: "dry", image: "file_0000000023e88211a2a3b05ec3695a2c.png" },
+        { id: 4, name: "Bushera", description: "A traditional fermented drink.", price: 55000, icon: "🥤", category: "fresh", image: "file_0000000039148211a3919ac542e8132e.png" },
+        { id: 5, name: "Cassava flour", description: "Cassava flour for everyday cooking.", price: 115000, icon: "🌿", category: "dry", image: "file_00000000cbd882118c188964f16d5cbd.png" },
+        { id: 6, name: "Tomatoes", description: "Fresh tomatoes for cooking and salads.", price: 5000, icon: "🍅", category: "fresh", image: "file_0000000023e88211a2a3b05ec3695a2c.png" }
       ];
 
-      // Enter your WhatsApp number with country code, without + or spaces (example: 2567XXXXXXXX).
       const WHATSAPP_NUMBER = "256756431285";
-      // Add the EmailJS values from your account. These browser-side settings are public.
       const EMAILJS_CONFIG = {
         publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
         serviceId: "YOUR_EMAILJS_SERVICE_ID",
