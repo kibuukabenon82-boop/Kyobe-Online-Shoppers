@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Shop with Kyobe Online Shoppers. Browse products and order easily on WhatsApp."
+    />
+    <meta name="theme-color" content="#146c43" />
+    <title>Kyobe Online Shoppers</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="topbar">Welcome to Kyobe Online Shoppers</div>
+    <header>
+      <a class="brand" href="#">Kyobe Online Shoppers</a>
+      <a class="cart-link" href="#cart">🛒 Cart (<span id="cart-count">0</span>)</a>
+    </header>
+
+    <section class="hero" aria-labelledby="welcome-heading">
+      <h1 id="welcome-heading">Shop your favourites, the easy way.</h1>
+      <p>Browse our products, add what you like to your cart, and send your order to us on WhatsApp.</p>
+    </section>
+
+    <main class="shop-layout">
+      <section class="products-panel" aria-labelledby="shop-heading">
+        <div class="shop-heading">
+          <h2 id="shop-heading">Our products</h2>
+          <label>
+            <span class="sr-only">Search products</span>
+            <input class="search" id="search" type="search" placeholder="Search products..." />
+          </label>
+        </div>
+        <div class="category-filters" role="group" aria-label="Filter products by category">
+          <button class="category-button active" type="button" data-category="all" aria-pressed="true">All products</button>
+          <button class="category-button" type="button" data-category="dry" aria-pressed="false">Dry food</button>
+          <button class="category-button" type="button" data-category="fresh" aria-pressed="false">Fresh food</button>
+        </div>
+        <div class="products" id="products"></div>
+      </section>
+
+      <aside class="cart" id="cart" aria-labelledby="cart-heading">
+        <h2 id="cart-heading">Your cart</h2>
+        <div id="cart-items" aria-live="polite"></div>
+        <label class="location-field" for="delivery-location">
+          Delivery location
+          <textarea
+            id="delivery-location"
+            name="delivery-location"
+            rows="3"
+            placeholder="Enter your area, street, or a nearby landmark"
+            required
+          ></textarea>
+        </label>
+        <label class="location-field" for="customer-email">
+          Email address for delivery updates
+          <input
+            id="customer-email"
+            name="email"
+            type="email"
+            autocomplete="email"
+            placeholder="you@example.com"
+            required
+          />
+        </label>
+        <div class="cart-summary">
+          <span>Total</span>
+          <span id="cart-total">UGX 0</span>
+        </div>
+        <button class="checkout-button" id="checkout" type="button" disabled>Order on WhatsApp</button>
+      </aside>
+    </main>
+
+    <footer>Thank you for shopping with Kyobe Online Shoppers.</footer>
+
+    <section class="staff-panel" id="staff-panel" hidden aria-labelledby="staff-heading">
+      <h2 id="staff-heading">Staff receipt printer</h2>
+      <p>Enter the order details you received, then create and print a receipt.</p>
+      <p>EmailJS template recipient: <code>{{to_email}}</code>. Add <code>{{customer_name}}</code>, <code>{{delivery_location}}</code>, <code>{{order_items}}</code>, <code>{{order_total}}</code>, and <code>{{order_date}}</code> to the email template.</p>
+      <form id="receipt-form">
+        <label class="location-field">
+          Customer name
+          <input name="customerName" autocomplete="name" required />
+        </label>
+        <label class="location-field">
+          Customer email
+          <input name="customerEmail" type="email" autocomplete="email" required />
+        </label>
+        <label class="location-field">
+          Delivery location
+          <input name="customerLocation" required />
+        </label>
+        <label class="location-field">
+          Order items
+          <textarea name="orderItems" rows="4" placeholder="Example: Rice x 2, Tomatoes x 1" required></textarea>
+        </label>
+        <label class="location-field">
+          Total (UGX)
+          <input name="orderTotal" type="number" min="0" step="1" required />
+        </label>
+        <button class="checkout-button" type="submit">Create receipt</button>
+      </form>
+      <div class="receipt-actions" id="receipt-actions" hidden>
+        <button class="checkout-button" id="print-receipt" type="button">Print receipt</button>
+        <button class="checkout-button" id="email-receipt" type="button">Email receipt</button>
+      </div>
+      <article class="receipt" id="receipt-output" hidden aria-live="polite"></article>
+      <p class="receipt-status" id="email-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+      // Replace these sample products and prices with your own shop items.
+      const products = [
+        { id: 1, name: "Rice", description: "Quality rice for your meals.", price: 195000, icon: "🍚", category: "dry", image: "images/file_0000000039148211a3919ac542e8132e.png" },
+        { id: 2, name: "Maize flour", description: "Maize flour for everyday cooking.", price: 140000, icon: "🌽", category: "dry", image: "images/file_00000000cbd882118c188964f16d5cbd.png" },
+        { id: 3, name: "Rice flour", description: "Rice flour for cooking and baking.", price: 85000, icon: "🌾", category: "dry", image: "images/file_0000000023e88211a2a3b05ec3695a2c.png" },
+        { id: 4, name: "Bushera", description: "A traditional fermented drink.", price: 55000, icon: "🥤", category: "fresh", image: "images/file_0000000039148211a3919ac542e8132e.png" },
+        { id: 5, name: "Cassava flour", description: "Cassava flour for everyday cooking.", price: 115000, icon: "🌿", category: "dry", image: "images/file_00000000cbd882118c188964f16d5cbd.png" },
+        { id: 6, name: "Tomatoes", description: "Fresh tomatoes for cooking and salads.", price: 5000, icon: "🍅", category: "fresh", image: "images/file_0000000023e88211a2a3b05ec3695a2c.png" },
+      ];
+
+      // Enter your WhatsApp number with country code, without + or spaces (example: 2567XXXXXXXX).
+      const WHATSAPP_NUMBER = "256756431285";
+      // Add the EmailJS values from your account. These browser-side settings are public.
+      const EMAILJS_CONFIG = {
+        publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
+        serviceId: "YOUR_EMAILJS_SERVICE_ID",
+        templateId: "YOUR_EMAILJS_TEMPLATE_ID",
+      };
+      const cart = new Map();
+      const money = new Intl.NumberFormat("en-UG");
+      const productsElement = document.querySelector("#products");
+      const cartItemsElement = document.querySelector("#cart-items");
+      const cartCountElement = document.querySelector("#cart-count");
+      const cartTotalElement = document.querySelector("#cart-total");
+      const checkoutButton = document.querySelector("#checkout");
+      const locationInput = document.querySelector("#delivery-location");
+      const emailInput = document.querySelector("#customer-email");
+      const searchInput = document.querySelector("#search");
+      const categoryButtons = document.querySelectorAll(".category-button");
+      const staffPanel = document.querySelector("#staff-panel");
+      let selectedCategory = "all";
+
+      function formatPrice(amount) {
+        return `UGX ${money.format(amount)}`;
+      }
+
+      function showProducts(searchText = "") {
+        const search = searchText.trim().toLowerCase();
+        const categories = selectedCategory === "all"
+          ? [
+              { key: "dry", label: "Dry products" },
+              { key: "fresh", label: "Fresh products" },
+            ]
+          : [{ key: selectedCategory, label: selectedCategory === "dry" ? "Dry products" : "Fresh products" }];
+
+        const groupedProducts = categories.map((category) => {
+          const matchingItems = products.filter((product) => {
+            const matchesSearch = `${product.name} ${product.description}`.toLowerCase().includes(search);
+            const matchesCategory = product.category === category.key;
+            return matchesSearch && matchesCategory;
+          });
+
+          return {
+            label: category.label,
+            items: matchingItems,
+          };
+        }).filter((section) => section.items.length > 0);
+
+        if (groupedProducts.length === 0) {
+          productsElement.innerHTML = '<p class="no-results">No products found. Try another search.</p>';
+          return;
+        }
+
+        productsElement.innerHTML = groupedProducts.map((section) => `
+          <div class="product-category">
+            <h3>${section.label}</h3>
+            <div class="product-grid">
+              ${section.items.map((product) => `
+                <article class="product">
+                  <div class="product-image">
+                    <img src="${product.image}" alt="${product.name}" />
+                  </div>
+                  <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <div class="product-bottom">
+                      <span class="price">${formatPrice(product.price)}</span>
+                      <button class="add-button" type="button" data-add="${product.id}">Add to cart</button>
+                    </div>
+                  </div>
+                </article>
+              `).join("")}
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function updateCart() {
+        const cartProducts = [...cart.entries()];
+        const itemCount = cartProducts.reduce((total, [, quantity]) => total + quantity, 0);
+        const total = cartProducts.reduce((sum, [id, quantity]) => {
+          const product = products.find((item) => item.id === id);
+          return sum + product.price * quantity;
+        }, 0);
+
+        cartCountElement.textContent = itemCount;
+        cartTotalElement.textContent = formatPrice(total);
+        checkoutButton.disabled = itemCount === 0;
+
+        if (itemCount === 0) {
+          cartItemsElement.innerHTML = '<p class="empty-cart">Your cart is empty. Add a product to get started.</p>';
+          return;
+        }
+
+        cartItemsElement.innerHTML = cartProducts.map(([id, quantity]) => {
+          const product = products.find((item) => item.id === id);
+          return `
+            <div class="cart-item">
+              <span class="cart-item-name">${product.name} — ${formatPrice(product.price * quantity)}</span>
+              <span class="cart-item-controls">
+                <button class="quantity-button" type="button" data-change="${id}" data-step="-1" aria-label="Remove one ${product.name}">−</button>
+                <span>${quantity}</span>
+                <button class="quantity-button" type="button" data-change="${id}" data-step="1" aria-label="Add one ${product.name}">+</button>
+              </span>
+            </div>
+          `;
+        }).join("");
+      }
+
+      productsElement.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-add]");
+        if (!button) return;
+
+        const id = Number(button.dataset.add);
+        cart.set(id, (cart.get(id) || 0) + 1);
+        updateCart();
+      });
+
+      cartItemsElement.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-change]");
+        if (!button) return;
+
+        const id = Number(button.dataset.change);
+        const quantity = (cart.get(id) || 0) + Number(button.dataset.step);
+        if (quantity <= 0) cart.delete(id);
+        else cart.set(id, quantity);
+        updateCart();
+      });
+
+      document.querySelector("#search").addEventListener("input", (event) => {
+        showProducts(event.target.value);
+      });
+
+      categoryButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          selectedCategory = button.dataset.category;
+          categoryButtons.forEach((categoryButton) => {
+            const isSelected = categoryButton === button;
+            categoryButton.classList.toggle("active", isSelected);
+            categoryButton.setAttribute("aria-pressed", String(isSelected));
+          });
+          showProducts(searchInput.value);
+        });
+      });
+
+      checkoutButton.addEventListener("click", () => {
+        if (!locationInput.value.trim()) {
+          locationInput.setCustomValidity("Please enter your delivery location.");
+          locationInput.reportValidity();
+          locationInput.focus();
+          return;
+        }
+        locationInput.setCustomValidity("");
+
+        if (!emailInput.value.trim() || !emailInput.checkValidity()) {
+          emailInput.reportValidity();
+          emailInput.focus();
+          return;
+        }
+
+        if (WHATSAPP_NUMBER.includes("X")) {
+          window.alert("Please add your WhatsApp number in the WHATSAPP_NUMBER setting in this page's code.");
+          return;
+        }
+
+        const orderLines = [...cart.entries()].map(([id, quantity]) => {
+          const product = products.find((item) => item.id === id);
+          return `${product.name} x ${quantity} - ${formatPrice(product.price * quantity)}`;
+        });
+        const total = [...cart.entries()].reduce((sum, [id, quantity]) => {
+          return sum + products.find((item) => item.id === id).price * quantity;
+        }, 0);
+        const message = `Hello, I would like to order:\n${orderLines.join("\n")}\nTotal: ${formatPrice(total)}\nDelivery location: ${locationInput.value.trim()}\nEmail for delivery updates: ${emailInput.value.trim()}`;
+        window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+      });
+
+      locationInput.addEventListener("input", () => locationInput.setCustomValidity(""));
+
+      if (new URLSearchParams(window.location.search).get("staff") === "1") {
+        staffPanel.hidden = false;
+      }
+
+      document.querySelector("#receipt-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const receipt = document.querySelector("#receipt-output");
+        document.querySelector("#email-status").textContent = "";
+        const receiptDetails = [
+          ["Customer", formData.get("customerName").trim()],
+          ["Email", formData.get("customerEmail").trim()],
+          ["Delivery location", formData.get("customerLocation").trim()],
+          ["Order items", formData.get("orderItems").trim()],
+          ["Total", formatPrice(Number(formData.get("orderTotal")))],
+          ["Date", new Date().toLocaleString()],
+        ];
+
+        receipt.replaceChildren();
+        const title = document.createElement("h2");
+        title.textContent = "Kyobe Online Shoppers — Receipt";
+        receipt.append(title);
+        receiptDetails.forEach(([label, value]) => {
+          const row = document.createElement("p");
+          const heading = document.createElement("strong");
+          heading.textContent = `${label}: `;
+          row.append(heading, document.createTextNode(value));
+          receipt.append(row);
+        });
+        receipt.hidden = false;
+        document.querySelector("#receipt-actions").hidden = false;
+      });
+
+      document.querySelector("#print-receipt").addEventListener("click", () => window.print());
+
+      document.querySelector("#email-receipt").addEventListener("click", async (event) => {
+        const status = document.querySelector("#email-status");
+        const button = event.currentTarget;
+        const form = document.querySelector("#receipt-form");
+        const formData = new FormData(form);
+        const configIsReady = Object.values(EMAILJS_CONFIG).every(
+          (value) => value && !value.startsWith("YOUR_")
+        );
+
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        if (!configIsReady) {
+          status.textContent = "Set your EmailJS public key, service ID, and template ID in index.html first.";
+          return;
+        }
+
+        if (!window.emailjs) {
+          status.textContent = "Email service did not load. Check your internet connection and try again.";
+          return;
+        }
+
+        button.disabled = true;
+        status.textContent = "Sending receipt email...";
+
+        try {
+          await window.emailjs.send(
+            EMAILJS_CONFIG.serviceId,
+            EMAILJS_CONFIG.templateId,
+            {
+              to_email: formData.get("customerEmail").trim(),
+              customer_name: formData.get("customerName").trim(),
+              delivery_location: formData.get("customerLocation").trim(),
+              order_items: formData.get("orderItems").trim(),
+              order_total: formatPrice(Number(formData.get("orderTotal"))),
+              order_date: new Date().toLocaleString(),
+            },
+            { publicKey: EMAILJS_CONFIG.publicKey }
+          );
+          status.textContent = "Receipt email sent successfully.";
+        } catch (error) {
+          console.error("EmailJS could not send the receipt email.", error);
+          const errorMessage = error && (error.text || error.message);
+          status.textContent = `Could not send the email. ${errorMessage || "Check your EmailJS settings and try again."}`;
+        } finally {
+          button.disabled = false;
+        }
+      });
+
+      showProducts();
+      updateCart();
+    </script>
+  </body>
+</html>
